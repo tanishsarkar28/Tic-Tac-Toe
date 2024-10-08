@@ -1,0 +1,149 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #333;
+}
+
+.container {
+    text-align: center;
+    padding: 40px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    max-width: 450px;
+    width: 100%;
+}
+
+h1 {
+    color: #4b72f2;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+label {
+    font-size: 1rem;
+    margin-right: 10px;
+    color: #333;
+    font-weight: 500;
+}
+
+select {
+    padding: 10px 15px;
+    border: 2px solid #4b72f2;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    background-color: #f7f9fc;
+}
+
+select:hover {
+    border-color: #365bdb;
+    background-color: #eaf0ff;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    background-color: #e6eff7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.cell:hover {
+    background-color: #d1e0f3;
+    border-color: #4b72f2;
+}
+
+.cell:active {
+    transform: scale(0.95);
+}
+
+/* Differentiate X and O colors */
+.X {
+    color: #4b72f2; /* Blue for X */
+}
+
+.O {
+    color: #f24444; /* Red for O */
+}
+
+.status {
+    font-size: 1.5rem;
+    margin-top: 10px;
+    color: #333;
+    font-weight: 600;
+}
+
+.reset-btn {
+    padding: 10px 20px;
+    background-color: #4b72f2;
+    color: white;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.reset-btn:hover {
+    background-color: #365bdb;
+}
+
+.reset-btn:active {
+    transform: scale(0.95);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 450px) {
+    .container {
+        padding: 30px;
+    }
+
+    .cell {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+    }
+
+    .reset-btn {
+        font-size: 1rem;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+    }
+}
