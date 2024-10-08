@@ -12,7 +12,7 @@ let playerSymbol = 'X'; // Default symbol for player
 let aiSymbol = 'O';
 let currentPlayer = 'X';
 let gameActive = true;
-let gameMode = 'ai'; // Default mode (playing with AI)
+let gameMode = 'friend'; // Set to 'friend' by default
 let difficulty = 'easy'; // Default difficulty level
 
 const winningConditions = [
@@ -59,146 +59,11 @@ function makeMove(index, player) {
     board[index] = player;
     const cellElement = document.querySelector(`[data-index='${index}']`);
     cellElement.textContent = player;
+    cellElement.classList.add(player); // Add class based on symbol
+
     if (!checkWin() && !checkDraw()) {
         currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
         updateStatus();
-    }
-}
-
-function aiMove() {
-    let symbolToPlay = aiSymbol; // AI plays as the opposite symbol
-
-    if (difficulty === 'easy') {
-        easyAiMove();
-    } else if (difficulty === 'medium') {
-        mediumAiMove();
-    } else if (difficulty === 'hard') {
-        hardAiMove();
-    }
-}
-
-function easyAiMove() {
-    let availableSpots = getAvailableSpots();
-    const randomIndex = availableSpots[Math.floor(Math.random() * availableSpots.length)];
-    makeMove(randomIndex, aiSymbol);
-}
-
-function mediumAiMove() {
-    let blockingMove = findBlockingMove(playerSymbol);
-    if (blockingMove !== null) {
-        makeMove(blockingMove, aiSymbol);
-    } else {
-        easyAiMove();
-    }
-}
-
-function hardAiMove() {
-    let bestMove = minimax(board, aiSymbol).index;
-    makeMove(bestMove, aiSymbol);
-}
-
-function findBlockingMove(player) {
-    for (let i = 0; i < winningConditions.length; i++) {
-        const [a, b, c] = winningConditions[i];
-        if (board[a] === player && board[b] === player && board[c] === '') return c;
-        if (board[a] === player && board[c] === player && board[b] === '') return b;
-        if (board[b] === player && board[c] === player && board[a] === '') return a;
-    }
-    return null;
-}
-
-function getAvailableSpots() {
-    return board.map((cell, index) => (cell === '' ? index : null)).filter(val => val !== null);
-}
-
-// Minimax Algorithm for Hard AI
-function minimax(newBoard, player) {
-    let availableSpots = getAvailableSpots();
-
-    if (checkWinner(newBoard, playerSymbol)) return { score: -10 };
-    if (checkWinner(newBoard, aiSymbol)) return { score: 10 };
-    if (availableSpots.length === 0) return { score: 0 };
-
-    let moves = [];
-    for (let i = 0; i < availableSpots.length; i++) {
-        let move = {};
-        move.index = availableSpots[i];
-        newBoard[availableSpots[i]] = player;
-
-        if (player === aiSymbol) {
-            let result = minimax(newBoard, playerSymbol);
-            move.score = result.score;
-        } else {
-            let result = minimax(newBoard, aiSymbol);
-            move.score = result.score;
-        }
-
-        newBoard[availableSpots[i]] = '';
-        moves.push(move);
-    }
-
-    let bestMove;
-    if (player === aiSymbol) {
-        let bestScore = -Infinity;
-        for (let i = 0; i < moves.length; i++) {
-            if (moves[i].score > bestScore) {
-                bestScore = moves[i].score;
-                bestMove = moves[i];
-            }
-        }
-    } else {
-        let bestScore = Infinity;
-        for (let i = 0; i < moves.length; i++) {
-            if (moves[i].score < bestScore) {
-                bestScore = moves[i].score;
-                bestMove = moves[i];
-            }
-        }
-    }
-    return bestMove;
-}
-
-function checkWinner(board, player) {
-    for (let i = 0; i < winningConditions.length; i++) {
-        const [a, b, c] = winningConditions[i];
-        if (board[a] === player && board[b] === player && board[c] === player) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function checkWin() {
-    let roundWon = false;
-    for (let i = 0; i < winningConditions.length; i++) {
-        const [a, b, c] = winningConditions[i];
-        if (board[a] === '' || board[b] === '' || board[c] === '') continue;
-        if (board[a] === board[b] && board[b] === board[c]) {
-            roundWon = true;
-            break;
-        }
-    }
-
-    if (roundWon) {
-        statusElement.textContent = `${currentPlayer} has won!`;
-        gameActive = false;
-        return true;
-    }
-    return false;
-}
-
-function checkDraw() {
-    if (!board.includes('')) {
-        statusElement.textContent = 'Game ended in a draw!';
-        gameActive = false;
-        return true;
-    }
-    return false;
-}
-
-function updateStatus() {
-    if (gameActive) {
-        statusElement.textContent = `It's ${currentPlayer}'s turn`;
     }
 }
 
@@ -211,11 +76,48 @@ function resetGame() {
     initializeBoard();
 }
 
+function updateStatus() {
+    if (gameActive) {
+        statusElement.textContent = `It's ${currentPlayer}'s turn`;
+    }
+}
+
+// Check for win or draw (add this function if missing)
+function checkWin() {
+    for (let condition of winningConditions) {
+        const [a, b, c] = condition;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+            statusElement.textContent = `${board[a]} wins!`;
+            gameActive = false;
+            return true;
+        }
+    }
+    return false;
+}
+
+function checkDraw() {
+    if (!board.includes('')) {
+        statusElement.textContent = "It's a draw!";
+        gameActive = false;
+        return true;
+    }
+    return false;
+}
+
+// Placeholder for AI move function (implement this based on your difficulty logic)
+function aiMove() {
+    // Implement AI logic here based on the selected difficulty level
+    // For now, we'll just make a random move
+    const availableIndices = board.map((cell, index) => (cell === '' ? index : null)).filter(index => index !== null);
+    const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    makeMove(randomIndex, aiSymbol);
+}
+
 // Add event listeners for reset and mode changes
 resetBtn.addEventListener('click', resetGame);
 modeSelect.addEventListener('change', () => {
     gameMode = modeSelect.value;
-    
+
     // Show or hide options based on game mode
     if (gameMode === 'ai') {
         symbolSelection.classList.remove('hidden');
@@ -226,24 +128,14 @@ modeSelect.addEventListener('change', () => {
     }
     resetGame();
 });
-difficultySelect.addEventListener('change', () => {
-    difficulty = difficultySelect.value;
-    resetGame();
-});
-playerSymbolSelect.addEventListener('change', () => {
-    resetGame();
-});
 
-initializeBoard();
-function makeMove(index, player) {
-    board[index] = player;
-    const cellElement = document.querySelector(`[data-index='${index}']`);
-    cellElement.textContent = player;
-    // Add class based on the player's symbol
-    cellElement.classList.add(player);
-
-    if (!checkWin() && !checkDraw()) {
-        currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
-        updateStatus();
-    }
+// Show options if the mode is set to AI by default
+function setDefaultGameMode() {
+    modeSelect.value = 'friend'; // Set the select option to "friend" at the start
+    symbolSelection.classList.add('hidden'); // Hide symbol selection initially
+    difficultySelection.classList.add('hidden'); // Hide difficulty selection initially
 }
+
+// Initialize the game
+setDefaultGameMode();
+initializeBoard();
