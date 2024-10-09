@@ -3,45 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic-Tac-Toe</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Tic-Tac-Toe: Play Against AI or Friend</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #1e1e2f;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+        .game-container {
+            text-align: center;
+            background-color: #2b2b3b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #f1c40f;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            margin: 20px auto;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #3b3b5c;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .cell:hover {
+            transform: scale(1.1);
+            background-color: #4b4b7c;
+        }
+        .X {
+            color: #3498db;
+        }
+        .O {
+            color: #e74c3c;
+        }
+        #status {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #ecf0f1;
+        }
+        #options {
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #f1c40f;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #d4ac0d;
+        }
+        select {
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #bdc3c7;
+            background-color: #ecf0f1;
+            margin-right: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            #board {
+                grid-template-columns: repeat(3, 80px);
+                grid-template-rows: repeat(3, 80px);
+            }
+            .cell {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="game-container">
         <h1>Tic-Tac-Toe</h1>
-
-        <!-- Player Mode Selection -->
-        <label for="mode">Game Mode: </label>
-        <select id="mode">
-            
-            <option value="friend">Play with a Friend</option>
-            <option value="ai">Play with Robot</option>
-        </select>
-
-        <!-- Player Symbol Selection (only for AI mode) -->
-        <div id="symbolSelection" class="hidden">
-            <label for="playerSymbol">Choose your symbol: </label>
-            <select id="playerSymbol">
-                <option value="X">X</option>
-                <option value="O">O</option>
+        <div id="status">Player's turn</div>
+        <div id="options">
+            <label for="mode">Play Mode: </label>
+            <select id="mode">
+                <option value="friend">Play with Friend</option>
+                <option value="ai">Play Against Bot</option>
             </select>
+            <button class="button" id="resetBtn">Restart Game</button>
         </div>
-
-        <!-- Difficulty Selection (only for AI mode) -->
-        <div id="difficultySelection" class="hidden">
-            <label for="difficulty">Difficulty: </label>
-            <select id="difficulty">
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-            </select>
-        </div>
-
-        <div id="board" class="board"></div>
-        <div id="status" class="status"></div>
-        <button id="resetBtn" class="reset-btn">Reset Game</button>
+        <center>
+            <div id="board"></div>
+        </center>
+        
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        const resetBtn = document.getElementById('resetBtn');
+        const modeSelect = document.getElementById('mode');
+
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let playerSymbol = 'X'; // Player 1 is X
+        let aiSymbol = 'O';     // Bot is O
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let mode = 'friend';    // Default mode is "Play with Friend"
+
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        // Initialize the board
+        function initializeBoard() {
+            boardElement.innerHTML = '';
+            board.forEach((cell, index) => {
+                const cellElement = document.createElement('div');
+                cellElement.classList.add('cell');
+                cellElement.setAttribute('data-index', index);
+                cellElement.addEventListener('click', handleMove);
+                boardElement.appendChild(cellElement);
+            });
+            updateStatus();
+        }
+
+        function handleMove(event) {
+            const index = event.target.getAttribute('data-index');
+            if (board[index] !== '' || !gameActive) return;
+
+            if (mode === 'friend') {
+                makeMove(index, currentPlayer);
+                currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
+            } else if (mode === 'ai' && currentPlayer === playerSymbol) {
+                makeMove(index, playerSymbol);
+                if (!checkWin() && !checkDraw()) {
+                    setTimeout(() => {
+                        aiMoveHard(); // AI makes its move in hard mode
+                    }, 500); // AI move with slight delay
+                }
+            }
+        }
+
+        function makeMove(index, player) {
+            board[index] = player;
+            const cellElement = document.querySelector(`[data-index='${index}']`);
+            cellElement.textContent = player;
+            cellElement.classList.add(player);
+
+            if (!checkWin() && !checkDraw()) {
+                updateStatus();
+            }
+        }
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            initializeBoard();
+        }
+
+        function updateStatus() {
+            if (gameActive) {
+                statusElement.textContent = `It's ${currentPlayer}'s turn`;
+            }
+        }
+
+        // Check for win
+        function checkWin() {
+            for (let condition of winningConditions) {
+                const [a, b, c] = condition;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    statusElement.textContent = `${board[a]} wins!`;
+                    gameActive = false;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Check for draw
+        function checkDraw() {
+            if (!board.includes('')) {
+                statusElement.textContent = "It's a draw!";
+                gameActive = false;
+                return true;
+            }
+            return false;
+        }
+
+        // Hard AI move using Minimax algorithm
+        function aiMoveHard() {
+            const bestMove = minimax(board, aiSymbol);
+            makeMove(bestMove.index, aiSymbol);
+        }
+
+        // Minimax algorithm
+        function minimax(newBoard, player) {
+            const availableIndices = newBoard.map((cell, index) => (cell === '' ? index : null)).filter(index => index !== null);
+
+            if (checkWinForPlayer(newBoard, aiSymbol)) {
+                return { score: 1 };
+            } else if (checkWinForPlayer(newBoard, playerSymbol)) {
+                return { score: -1 };
+            } else if (availableIndices.length === 0) {
+                return { score: 0 };
+            }
+
+            let moves = [];
+            for (let index of availableIndices) {
+                newBoard[index] = player;
+                const result = minimax(newBoard, player === aiSymbol ? playerSymbol : aiSymbol);
+                moves.push({ index, score: result.score });
+                newBoard[index] = '';
+            }
+
+            let bestMove;
+            if (player === aiSymbol) {
+                let bestScore = -Infinity;
+                for (let move of moves) {
+                    if (move.score > bestScore) {
+                        bestScore = move.score;
+                        bestMove = move;
+                    }
+                }
+            } else {
+                let bestScore = Infinity;
+                for (let move of moves) {
+                    if (move.score < bestScore) {
+                        bestScore = move.score;
+                        bestMove = move;
+                    }
+                }
+            }
+            return bestMove;
+        }
+
+        // Check win for a specific player
+        function checkWinForPlayer(board, player) {
+            for (let condition of winningConditions) {
+                const [a, b, c] = condition;
+                if (board[a] === player && board[b] === player && board[c] === player) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Event listeners
+        resetBtn.addEventListener('click', resetGame);
+        modeSelect.addEventListener('change', () => {
+            mode = modeSelect.value;
+            resetGame();
+        });
+
+        // Initialize the game
+        initializeBoard();
+    </script>
 </body>
 </html>
